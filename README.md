@@ -1,2 +1,2 @@
 # G-Function-Automation
-Codes to automate G function modeling
+This repository contains codes to automate various G function models. Just input the number of species you'd like and you're good to go!
