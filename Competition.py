@@ -7,12 +7,11 @@ import random
 import copy
 
 KM = 100 #Carrying capacity
-d = 0.05 #Background death rate
 r = 0.25 #Intrinsic growth rate
 k = 1 #Evolvability
-B = 0 #Aggressiveness coefficient
-sk = 12.5 #Range of resources (affects functional carrying capacity, stabilizing selection)
-sa=100 #Species niche width (affects competition coefficient, divergent/convergent evolution)
+B = 2 #Aggressiveness coefficient
+sk = 20 #Range of resources (affects functional carrying capacity, stabilizing selection)
+sa = 4 #Species niche width (affects competition coefficient, divergent/convergent evolution)
 gamma = 0 #Strategy that maximizes carrying capacity
 num = 5 #Number of morphs
 
@@ -25,7 +24,7 @@ IC = [] #Initial Conditions
 def gen_morphs(n):
     for i in range(n):
         var1 = random.uniform(1,10)
-        var2 = random.uniform(0,1)
+        var2 = random.uniform(-10,10)
         IC.append(var1)
         IC.append(var2)
         
@@ -34,6 +33,13 @@ gen_morphs(num)
 def carry(v):
     return KM * math.exp(-((v - gamma) ** 2) / (2 * sk))
 
+def carry_der(v):
+    return -KM*(-2*gamma + 2*v)*exp(-(-gamma + v)**2/(2*sk))/(2*sk)
+
+def carry_der2(v):
+    return r*(-2*gamma + 2*v)*exp((-gamma + v)**2/(2*sk))/(2*KM*sk)
+
+
 def evoLV(X, t):       
 
     strats = X[1::2]
@@ -41,12 +47,12 @@ def evoLV(X, t):
     
     temp = []
     
-    if t>start and t<end:
+    '''if t>start and t<end:
         sa=100
     else:
-        sa=2
+        sa=2'''
 
-    def comp(n,strats):
+    def comp(n):
         a=0
         i=0
         while i < num:
@@ -54,19 +60,25 @@ def evoLV(X, t):
             i+=1
         return a
     
+    def comp_der(n):
+        a=0
+        i=0
+        while i < num:
+            a += -pops[i]*(2*B + 2*n - 2*strats[i])*exp(-(B + n - strats[i])**2/(2*sa))/(2*sa)
+            i+=1
+        return a
+    
     def pop_update():
         i=0
         while i <num:
-            G = r/carry(strats[i]) * (carry(strats[i]) - comp(strats[i],strats)) - d*k
+            G = r/carry(strats[i]) * (carry(strats[i]) - comp(strats[i]))
+            Gder = r/carry(strats[i])*(carry_der(strats[i])-comp_der(strats[i]))+(carry(strats[i]) - comp(strats[i]))*carry_der2(strats[i])
             a = pops[i]*G
-            pert = copy.deepcopy(strats)
-            pert[i] = strats[i]+.0001 
-            Gmod = r/carry(pert[i]) * (carry(pert[i]) - comp(pert[i],pert)) - d*k
-            b = k*(Gmod-G)/.0001 
+            b = k*Gder
             temp.append(a)
             temp.append(b)
             i+=1
-            
+    
     pop_update()
     
     final=np.array(temp)
@@ -106,28 +118,27 @@ plt.show()
 
 def AL(time_G):
     
-    popn = pop[time_G-1][::2]
+    pops = pop[time_G-1][::2]
     strats = pop[time_G-1][1::2]
-    ranup = max(max(strats)+.1,.5)
-    ranlo = min(min(strats)-.1,-.5)
+    ranup = 6 #max(max(strats)+.1,.5)
+    ranlo = -6 #min(min(strats)-.1,-.5)
 
-    if time_G>start*10 and time_G<end*10:
+    '''if time_G>start*10 and time_G<end*10:
         sa=100
     else:
-        sa=2
+        sa=2'''
 
     def comp(n):
         a=0
         i=0
-        while i <num:
-            a += (1 + math.exp(-(n - strats[i] + B) ** 2 / (2 * sa)) - math.exp(-(B ** 2 / (2 * sa))))*popn[i]
+        while i < num:
+            a += (1 + math.exp(-(n - strats[i] + B) ** 2 / (2 * sa)) - math.exp(-(B ** 2 / (2 * sa))))*pops[i]
             i+=1
         return a
 
 
     def G(n):
-        return r/carry(n) * (carry(n) - comp(n)) - d*k
-
+        return r/carry(n) * (carry(n) - comp(n))
     tem = []
 
     for n in np.arange(ranlo,ranup,.1):
