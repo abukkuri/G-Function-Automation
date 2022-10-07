@@ -31,7 +31,7 @@ def gen_morphs(n):
 gen_morphs(num)
 
 def carry(v):
-    return KM * math.exp(-((v - gamma) ** 2) / (2 * sk))
+    return KM * exp(-((v - gamma) ** 2) / (2 * sk))
 
 def carry_der(v):
     return -KM*(-2*gamma + 2*v)*exp(-(-gamma + v)**2/(2*sk))/(2*sk)
@@ -56,7 +56,7 @@ def evoLV(X, t):
         a=0
         i=0
         while i < num:
-            a += (1 + math.exp(-(n - strats[i] + B) ** 2 / (2 * sa)) - math.exp(-(B ** 2 / (2 * sa))))*pops[i]
+            a += (1 + exp(-(n - strats[i] + B) ** 2 / (2 * sa)) - exp(-(B ** 2 / (2 * sa))))*pops[i]
             i+=1
         return a
     
@@ -115,13 +115,15 @@ plt.ylabel('Indv Strategy, v')
 plt.xlabel('Time')
 plt.show()
 
+print ('Equilibrium x1: %f' %pop[time][0])
+print ('Equilibrium u1: %f' %pop[time][1])
 
 def AL(time_G):
     
     pops = pop[time_G-1][::2]
     strats = pop[time_G-1][1::2]
-    ranup = 6 #max(max(strats)+.1,.5)
-    ranlo = -6 #min(min(strats)-.1,-.5)
+    ranup = max(max(strats)+2,.5)
+    ranlo = min(min(strats)-2,-.5)
 
     '''if time_G>start*10 and time_G<end*10:
         sa=100
@@ -132,7 +134,7 @@ def AL(time_G):
         a=0
         i=0
         while i < num:
-            a += (1 + math.exp(-(n - strats[i] + B) ** 2 / (2 * sa)) - math.exp(-(B ** 2 / (2 * sa))))*pops[i]
+            a += (1 + exp(-(n - strats[i] + B) ** 2 / (2 * sa)) - exp(-(B ** 2 / (2 * sa))))*pops[i]
             i+=1
         return a
 
